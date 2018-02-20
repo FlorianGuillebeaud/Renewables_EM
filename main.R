@@ -134,7 +134,14 @@ plot(1:N_simulations, welfare_hour, type = "l", xlab = "Time [h]", ylab = "Welfa
 title(main= "Welfare evolution during January for the global market")
 
 # here we look at the usage of the transmission
-plot(1:N_simulations, dispatch_hour[,18])
+count = 0
+for (i in 1:N_simulations) if (dispatch_hour[i,18]==600) count = count + 1
+cat(count/N_simulations*100) # retunr the % of time when transmission is fully used
+
+plot(1:N_simulations, dispatch_hour[,18], type = 'l', xlab = "Time [h]", ylab = "[MW]")
+abline(h = transmission_cap, col ="red")
+title(main = "Transmission from DK2 to DK1", sub = "Full transmission 62.3% of the time", col.sub = "red")
+
 
 # here we look the difference in prices [%] from the 2 markets
 plot(1:N_simulations, (price_hour[,1]/price_hour[,2])*100, type = 'l', xlab = "Time [h]", ylab = "[%]")
