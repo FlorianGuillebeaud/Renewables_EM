@@ -101,11 +101,11 @@ for (i in 1:N_simulations){
 
 # Plots 
 ## DK1
-# Wind penetration
+# Wind production
 plot(1:N_simulations, demand_hour[,1], type = 'l', ylim = c(0,max(demand_hour[,1])+1000), xlab = "Time [h]", ylab = "[MW]")
 lines(1:N_simulations,dispatch_hour[,1]+dispatch_hour[,2], col = "blue")
 legend("topleft", legend = c("Electricity demand in DK1", "Wind production in DK1"), col = c("black", "blue"), lty = c(1,1), cex = 0.75 )
-title(main= "Wind penetration in the electricity market DK1")
+title(main= "Wind production in the electricity market DK1")
 
 # let's look at the price evolution 
 plot(1:N_simulations, price_hour[,1], xlab = "Time [h]", ylab = "Electricity price [Eur/MWh]", type = 'l', ylim = c(-5, max(price_hour[,1])+50))
@@ -114,12 +114,26 @@ abline( h = mean(price_hour[,1]), col = "orange", lty = 2, lwd = 2)
 legend("topleft", legend= c("Max price", "Mean price over the month"), col = c("red","orange"), lty = c(1,2), lwd = c(1,2))
 title(main= "January electricity price evolution in DK1")
 
+# let's look at the wind penetration in this market 
+## Wind energy penetration [%] is calculated as the wind energy produced in a time period [hour; day; year] 
+## divided by the total electricity consumption in that period
+plot(1:N_simulations, (dispatch_hour[,1]+dispatch_hour[,2])/demand_hour[,1]*100, type = 'l', ylim = c(-5,105),
+     xlab = "Time [h]", ylab = "[%]")
+title(main = "Wind penetration in DK1")
+
 ## DK2
-# Wind penetration
+# Wind production
 plot(1:N_simulations, demand_hour[,2], type = 'l', ylim = c(0,max(demand_hour[,2])+1000),xlab = "Time [h]", ylab = "[MW]")
 lines(1:N_simulations,dispatch_hour[,3]+dispatch_hour[,4], col = "blue")
 legend("topleft", legend = c("Electricity demand in DK2", "Wind production in DK2"), col = c("black", "blue"), lty = c(1,1), cex = 0.75 )
-title(main= "Wind penetration in the electricity market DK2")
+title(main= "Wind production in the electricity market DK2")
+
+# Let's look at the wind penetration in this market
+## Wind energy penetration [%] is calculated as the wind energy produced in a time period [hour; day; year] 
+## divided by the total electricity consumption in that period
+plot(1:N_simulations, (dispatch_hour[,3]+dispatch_hour[,4])/demand_hour[,2]*100, type = 'l', ylim = c(-5,105),
+     xlab = "Time [h]", ylab = "[%]")
+title(main = "Wind penetration in DK2")
 
 # let's look at the price evolution 
 plot(1:N_simulations, price_hour[,2], xlab = "Time [h]", ylab = "Electricity price [Eur/MWh]",ylim = c(-5, max(price_hour[,2])+50), type = "l", col = "black")
