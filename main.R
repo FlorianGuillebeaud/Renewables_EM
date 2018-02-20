@@ -42,6 +42,11 @@ EW2_pp = 2/3 # EastWind2 quantity based on predicted prod
 N_simulations = 31*24 # January hourly
 transmission_cap = 600 # MWh
 
+## Save the results 
+dispatch_hour = matrix(0,nrow = N_simulations, ncol = 20)
+price_hour = demand_hour = matrix(0,nrow = N_simulations, ncol = 2) # 2 zones
+welfare_hour = vector()
+
 ## DK1 = WEST / DK2 = EAST
 for (i in 5:5){
   # Objective function
@@ -53,7 +58,7 @@ for (i in 5:5){
   lsDK2 = 1000000
   
   b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
-        400, 330, 345, 390, 510, 1000, 1200, 320, 360, 400, 350, 730, 630, 600, lsDK1, lsDK2)
+        400, 330, 345, 390, 510, 1000, 1200, 320, 360, 400, 350, 730, 630, transmission_cap, lsDK1, lsDK2)
   
   beq_DK1 = Consumption$DK1[i] + GermanyExport$Germany_quantity[i] - NorwayImport$Norway_Quantity[i]
   beq_DK2 = Consumption$DK2[i] + SwedenExport$Sweden_quantity[i]
@@ -87,13 +92,9 @@ for (i in 5:5){
   lp_sol_dual <- -lp("min", f.obj, f.con, f.dir, f.rhs,compute.sens=TRUE)$duals[1:length(beq)] 
   eq.welfare <- lp("min", f.obj, f.con, f.dir, f.rhs,compute.sens=TRUE)$objval 
   
-  results = list(eq.price = lp_sol_dual,
-                 eq.quantity = beq,
-                 eq.welfare = abs(eq.welfare),
-                 supply_dispatch = v.sol[1:length(b)],
-                 total_supply_dispatch = sum(v.sol[1:length(b)]))
-  
-  cat(paste0("########## Hour : ", i, " #############"), "\n")
-  print(results)
+  dispatch_hour[i,] = supply_dispatch
+  price_hour[i,] = lp_sol_dual
+  demand_hour[i,] = beq
+  welfare_hour[i] = abs(eq.welfare)
 }
 
