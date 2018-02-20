@@ -48,7 +48,7 @@ price_hour = demand_hour = matrix(0,nrow = N_simulations, ncol = 2) # 2 zones
 welfare_hour = vector()
 
 ## DK1 = WEST / DK2 = EAST
-for (i in 5:5){
+for (i in 1:N_simulations){
   # Objective function
   f.obj = c(0, -17, 0, -500, 70, 
             64, 153, 82, 89, 25, 19, 43, 39, 36, 31, 5, 10, 0, 1000, 1000)
@@ -92,9 +92,22 @@ for (i in 5:5){
   lp_sol_dual <- -lp("min", f.obj, f.con, f.dir, f.rhs,compute.sens=TRUE)$duals[1:length(beq)] 
   eq.welfare <- lp("min", f.obj, f.con, f.dir, f.rhs,compute.sens=TRUE)$objval 
   
+  # Keeps track of the results
   dispatch_hour[i,] = supply_dispatch
   price_hour[i,] = lp_sol_dual
   demand_hour[i,] = beq
   welfare_hour[i] = abs(eq.welfare)
 }
 
+# Plots 
+# DK1
+plot(1:N_simulations, demand_hour[,1], type = 'l', ylim = c(0,max(demand_hour[,1])+1000), xlab = "Time [h]", ylab = "[MW]")
+lines(1:N_simulations,dispatch_hour[,1]+dispatch_hour[,2], col = "blue")
+legend("topleft", legend = c("Electricity demand in DK1", "Wind production in DK1"), col = c("black", "blue"), lty = c(1,1), cex = 0.75 )
+title(main= "Wind penetration in the electricity market DK1")
+
+# DK2
+plot(1:N_simulations, demand_hour[,2], type = 'l', ylim = c(0,max(demand_hour[,2])+1000),xlab = "Time [h]", ylab = "[MW]")
+lines(1:N_simulations,dispatch_hour[,3]+dispatch_hour[,4], col = "blue")
+legend("topleft", legend = c("Electricity demand in DK2", "Wind production in DK2"), col = c("black", "blue"), lty = c(1,1), cex = 0.75 )
+title(main= "Wind penetration in the electricity market DK2")
