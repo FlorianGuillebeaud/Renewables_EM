@@ -8,12 +8,14 @@ setwd("~/Documents/DTU/B_Semester-2/31761_Renew_ElectricityMarkets/Assignments/A
 # install.packages("ggplot2")
 # install.packages("lpSolve")
 # install.packages("linprog")
+# install.packages("circlize")
 
 ## Read packages if already installed 
 library(ggplot2)
 library(lpSolve)
 library(linprog)
 library(tidyverse)
+library(circlize)
 
 
 ## read data ## 
@@ -156,7 +158,6 @@ plot(1:N_simulations, dispatch_hour[,18], type = 'l', xlab = "Time [h]", ylab = 
 abline(h = transmission_cap, col ="red")
 title(main = "Transmission from DK2 to DK1", sub = "Full transmission 62.3% of the time", col.sub = "red")
 
-
 # here we look the difference in prices [%] from the 2 markets
 plot(1:N_simulations, (price_hour[,1]/price_hour[,2])*100, type = 'l', xlab = "Time [h]", ylab = "[%]")
 abline( h = mean((price_hour[,1]/price_hour[,2])*100, na.rm = TRUE), col = "blue")
@@ -168,3 +169,5 @@ lines(1:N_simulations, price_hour[,1], col = "blue")
 legend("topleft", legend= c("DK2", "DK1"), col = c("black","blue"), lty = 1)
 title(main = "Electricity price evolution for both markets")
 
+
+# histogram
