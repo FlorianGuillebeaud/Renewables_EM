@@ -100,6 +100,14 @@ for (i in 1:N_simulations){
   demand_hour[i,] = beq
   welfare_hour[i] = abs(eq.welfare)
 }
+# Post-traitments 
+dispatch_daily  = matrix(0,nrow = 31, ncol = 20)
+demand_daily = matrix(0,nrow = 31, ncol = 2)
+day = seq(1,N_simulations,by = 24)
+for (i in 1:length(day)){
+  dispatch_daily[i,] = colSums(dispatch_hour[day[i]:(day[i]+23),])
+  demand_daily[i,] = colSums(demand_hour[day[i]:(day[i]+23),])
+}
 
 # Plots 
 ## DK1
@@ -122,6 +130,7 @@ title(main= "January electricity price evolution in DK1")
 plot(1:N_simulations, (dispatch_hour[,1]+dispatch_hour[,2])/demand_hour[,1]*100, type = 'l', ylim = c(-5,105),
      xlab = "Time [h]", ylab = "[%]")
 title(main = "Wind penetration in DK1")
+
 
 ## DK2
 # Wind production
@@ -169,5 +178,17 @@ lines(1:N_simulations, price_hour[,1], col = "blue")
 legend("topleft", legend= c("DK2", "DK1"), col = c("black","blue"), lty = 1)
 title(main = "Electricity price evolution for both markets")
 
+## Plots per day 
+plot(1:31, (dispatch_daily[,1]+dispatch_daily[,2])/1000, type = "h", lwd = 12, col = "darkblue", 
+     xlab = "Time [day]", ylab = "[kW]", ylim = c(0,90))
+lines(1:31, (dispatch_daily[,3]+dispatch_daily[,4])/1000, type = "h", col = "grey", lwd = 10)
+legend("topleft", legend = c("DK1", "DK2"), col = c("darkblue", "grey"), lwd = c(12,10), lty = 1)
+title(main = "[January] Daily electricity production from wind")
 
-# histogram
+## wind penetration per day 
+plot(1:31, (dispatch_daily[,1]+dispatch_daily[,2])/demand_daily[,1]*100, type = 'h', lwd = 12, col = "darkblue",
+     xlab = "Time [day]", ylab = "[%]", ylim = c(0,130))
+lines(1:31, (dispatch_daily[,3]+dispatch_daily[,4])/demand_daily[,2]*100, type = 'h', lwd = 10, col = "grey")
+legend("topleft", legend = c("DK1", "DK2"), col = c("darkblue", "grey"), lwd = c(12,10), lty = 1)
+title(main = "[January] Wind penetration")
+
