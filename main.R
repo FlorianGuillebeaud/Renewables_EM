@@ -40,6 +40,16 @@ WW2_pp = 0.75 # WestWind2 quantity based on predicted prod
 EW1_pp = 1/3 # EastWind1 quantity based on predicted prod
 EW2_pp = 2/3 # EastWind2 quantity based on predicted prod
 
+##
+participants = c("WW1_DK1","WW2_DK1","EW1_DK2","EW2_DK2",
+              "FlexiGas_DK1", "FlexiGas_DK1","FlexiGas_DK1",
+              "Peako_DK1", "Peako_DK1",
+              "Nuke22_DK1", "Nuke22_DK2",
+              "RoskildeCHP_DK2", "RoskildeCHP_DK2",
+              "Avedovre_DK2", "Avedovre_DK2",
+              "BlueWater_DK2", "BlueWater_DK2",
+              "Transmission_line",
+              "Shedding1", "Shedding2")
 ## 
 N_simulations = 31*24 # January hourly
 transmission_cap = 600 # MWh
@@ -143,7 +153,7 @@ title(main= "Wind production in the electricity market DK2")
 ## Wind energy penetration [%] is calculated as the wind energy produced in a time period [hour; day; year] 
 ## divided by the total electricity consumption in that period
 plot(1:N_simulations, (dispatch_hour[,3]+dispatch_hour[,4])/demand_hour[,2]*100, type = 'l', ylim = c(-5,105),
-     xlab = "Time [h]", ylab = "[%]")
+     xlab = "Time [h]", ylab = "[%]", col ="blue")
 title(main = "Wind penetration in DK2")
 
 # let's look at the price evolution 
@@ -192,3 +202,36 @@ lines(1:31, (dispatch_daily[,3]+dispatch_daily[,4])/demand_daily[,2]*100, type =
 legend("topleft", legend = c("DK1", "DK2"), col = c("darkblue", "grey"), lwd = c(12,10), lty = 1)
 title(main = "[January] Wind penetration")
 
+## Comparison betwen high wind penetration and low wind penetration
+wp_DK1_h650 = (dispatch_hour[650,1]+dispatch_hour[650,2])/demand_hour[650,1]*100
+wp_DK2_h650 = (dispatch_hour[650,3]+dispatch_hour[650,4])/demand_hour[650,2]*100
+
+wp_DK1_h120 = (dispatch_hour[120,1]+dispatch_hour[120,2])/demand_hour[120,1]*100
+wp_DK2_h120 = (dispatch_hour[120,3]+dispatch_hour[120,4])/demand_hour[120,2]*100
+
+# market prices
+mp_high_wp = price_hour[650,]
+mp_low_wp = price_hour[120,]
+
+# scheduled power producers
+par(mar=c(8, 4, 2, 2) + 0.1)
+plot(1:18, dispatch_hour[650,1:18], type = "h", xlab = "", ylab = "[W]", lwd = 5, xaxt = "n")
+lines(3:4, dispatch_hour[650,3:4], type = "h", lwd = 5, col = "red")
+lines(18,dispatch_hour[650,18], type = "h", lwd = 5, col= "blue")
+legend("topright",legend = c(paste0("generator producing at full capacity"), paste0("0 transmission"),
+                             paste0("Wind penetration DK1 = ", wp_DK1_h650, "%"), paste0("Wind penetration DK2 = ", round(wp_DK2_h650), "%" )), 
+       col = c("red","blue"), lwd = 5, lty = c(1,1,0,0), cex = 0.75)
+axis(1, at=1:18, labels = participants[1:18], las = 2, cex.axis = 0.8)
+title(main = "Production dispatch at high wind penetration (DK1 & DK2)")
+
+
+par(mar=c(8, 4, 2, 2) + 0.1)
+plot(1:18, dispatch_hour[120,1:18], type = "h", xaxt ="n", xlab = "", ylab = "[W]", lwd = 5, ylim = c(0,1200))
+lines(10, dispatch_hour[120,10], type = "h", lwd = 5, col = "red")
+lines(16:17, dispatch_hour[120,16:17], type = "h", lwd = 5, col = "red")
+lines(18, dispatch_hour[120,18], type = "h", lwd = 5, col = "blue")
+legend("topleft",legend = c(paste0("generator producing at full capacity"), paste0("Transmission congested"),
+                             paste0("Wind penetration DK1 = ", round(wp_DK1_h120), "%"), paste0("Wind penetration DK2 = ", round(wp_DK2_h120), "%" )), 
+       col = c("red","blue"), lwd = 5, lty = c(1,1,0,0), cex = 0.75)
+axis(1, at=1:18, labels = participants[1:18], las = 2, cex.axis = 0.8)
+title(main = "Production dispatch at low wind penetration (DK1 & DK2)")
