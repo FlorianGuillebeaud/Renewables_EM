@@ -42,14 +42,14 @@ EW2_pp = 2/3 # EastWind2 quantity based on predicted prod
 
 ##
 participants = c("WW1_DK1","WW2_DK1","EW1_DK2","EW2_DK2",
-              "FlexiGas_DK1", "FlexiGas_DK1","FlexiGas_DK1",
-              "Peako_DK1", "Peako_DK1",
-              "Nuke22_DK1", "Nuke22_DK2",
-              "RoskildeCHP_DK2", "RoskildeCHP_DK2",
-              "Avedovre_DK2", "Avedovre_DK2",
-              "BlueWater_DK2", "BlueWater_DK2",
-              "Transmission_line",
-              "Shedding1", "Shedding2")
+                 "FlexiGas_DK1", "FlexiGas_DK1","FlexiGas_DK1",
+                 "Peako_DK1", "Peako_DK1",
+                 "Nuke22_DK1", "Nuke22_DK2",
+                 "RoskildeCHP_DK2", "RoskildeCHP_DK2",
+                 "Avedovre_DK2", "Avedovre_DK2",
+                 "BlueWater_DK2", "BlueWater_DK2",
+                 "Transmission_line",
+                 "Shedding1", "Shedding2")
 ## 
 N_simulations = 31*24 # January hourly
 transmission_cap = 600 # MWh
@@ -63,14 +63,15 @@ welfare_hour = vector()
 for (i in 1:N_simulations){
   # Objective function
   f.obj = c(0, -17, 0, -500, 70, 
-            64, 153, 82, 89, 25, 19, 43, 39, 36, 31, 5, 10, 0, 1000, 1000)
+            64, 153, 82, 89, Nuke22$G6_price[i], Nuke22$G7_price[i], 43, 39, 36, 31, 5, 10, 0, 1000, 1000)
   
-  # define load shedding
+  # define load shedding 
+  # first try
   lsDK1 = 1000000
   lsDK2 = 1000000
   
   b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
-        400, 330, 345, 390, 510, 1000, 1200, 320, 360, 400, 350, 730, 630, transmission_cap, lsDK1, lsDK2)
+        400, 330, 345, 390, 510, Nuke22$G6_quantity[i], Nuke22$G7_quantity[i], 320, 360, 400, 350, 730, 630, transmission_cap, lsDK1, lsDK2)
   
   beq_DK1 = Consumption$DK1[i] + GermanyExport$Germany_quantity[i] - NorwayImport$Norway_Quantity[i]
   beq_DK2 = Consumption$DK2[i] + SwedenExport$Sweden_quantity[i]
@@ -110,6 +111,9 @@ for (i in 1:N_simulations){
   demand_hour[i,] = beq
   welfare_hour[i] = abs(eq.welfare)
 }
+
+########################################################
+########################################################
 # Post-traitments 
 dispatch_daily  = matrix(0,nrow = 31, ncol = 20)
 demand_daily = matrix(0,nrow = 31, ncol = 2)
@@ -119,6 +123,8 @@ for (i in 1:length(day)){
   demand_daily[i,] = colSums(demand_hour[day[i]:(day[i]+23),])
 }
 
+########################################################
+########################################################
 # Plots 
 ## DK1
 # Wind production
@@ -142,6 +148,7 @@ plot(1:N_simulations, (dispatch_hour[,1]+dispatch_hour[,2])/demand_hour[,1]*100,
 title(main = "Wind penetration in DK1")
 
 
+########################################################
 ## DK2
 # Wind production
 plot(1:N_simulations, demand_hour[,2], type = 'l', ylim = c(0,max(demand_hour[,2])+1000),xlab = "Time [h]", ylab = "[MW]")
@@ -163,6 +170,9 @@ abline( h = mean(price_hour[,2]), col = "orange", lty = 2, lwd = 2)
 legend("topleft", legend= c("Max price", "Mean price over the month"), col = c("red","orange"), lty = c(1,2), lwd = c(1,2))
 title(main= "January electricity price evolution in DK2")
 
+
+########################################################
+########################################################
 ## Global
 # here we take a look at the welfare evolution
 plot(1:N_simulations, welfare_hour, type = "l", xlab = "Time [h]", ylab = "Welfare [Eur/MW]")
@@ -175,7 +185,7 @@ cat(count/N_simulations*100) # retunr the % of time when transmission is fully u
 
 plot(1:N_simulations, dispatch_hour[,18], type = 'l', xlab = "Time [h]", ylab = "[MW]")
 abline(h = transmission_cap, col ="red")
-title(main = "Transmission from DK2 to DK1", sub = "Full transmission 62.3% of the time", col.sub = "red")
+title(main = "Transmission from DK2 to DK1", sub = "Full transmission 62.63% of the time", col.sub = "red")
 
 # here we look the difference in prices [%] from the 2 markets
 plot(1:N_simulations, (price_hour[,1]/price_hour[,2])*100, type = 'l', xlab = "Time [h]", ylab = "[%]")
@@ -231,7 +241,112 @@ lines(10, dispatch_hour[120,10], type = "h", lwd = 5, col = "red")
 lines(16:17, dispatch_hour[120,16:17], type = "h", lwd = 5, col = "red")
 lines(18, dispatch_hour[120,18], type = "h", lwd = 5, col = "blue")
 legend("topleft",legend = c(paste0("generator producing at full capacity"), paste0("Transmission congested"),
-                             paste0("Wind penetration DK1 = ", round(wp_DK1_h120), "%"), paste0("Wind penetration DK2 = ", round(wp_DK2_h120), "%" )), 
+                            paste0("Wind penetration DK1 = ", round(wp_DK1_h120), "%"), paste0("Wind penetration DK2 = ", round(wp_DK2_h120), "%" )), 
        col = c("red","blue"), lwd = 5, lty = c(1,1,0,0), cex = 0.75)
 axis(1, at=1:18, labels = participants[1:18], las = 2, cex.axis = 0.8)
 title(main = "Production dispatch at low wind penetration (DK1 & DK2)")
+
+########################################################
+########################################################
+### merit order plot
+source("functions/m_order.R")
+source("functions/simple_merit_order_plot.R")
+
+i = 120
+b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
+      400, 330, 345, 390, 510, Nuke22$G6_quantity[120], Nuke22$G7_quantity[120], 320, 360, 400, 350, 730, 630, transmission_cap, lsDK1, lsDK2)
+
+# DK1
+quantity = c(b[1:2],b[5:10])
+price = c(f.obj[1:2],f.obj[5:10])
+demand_dk1 = Consumption$DK1[i] + GermanyExport$Germany_quantity[i] - NorwayImport$Norway_Quantity[i]
+data = data.frame(quantity = quantity, price = price)
+data = data[order(data$price),]
+new_quantity = m_order(data$quantity)
+data[,1] = new_quantity
+simple_merit_order_plot(data, "Market clearing DK1 - low wind penetration", TRUE, demand_dk1)
+
+# DK2
+quantity = c(b[3:4],b[11:17])
+price = c(f.obj[3:4],f.obj[11:17])
+demand_dk2 = Consumption$DK2[i] + SwedenExport$Sweden_quantity[i]
+data = data.frame(quantity = quantity, price = price)
+data = data[order(data$price),]
+new_quantity = m_order(data$quantity)
+data[,1] = new_quantity
+simple_merit_order_plot(data, "Market clearing DK2 - low wind penetration", TRUE, demand)
+
+
+########################################################
+########################################################
+# Revenues calculation 
+# We order Generators for DK1 and for DK2 
+new_dispatch_hour = matrix(0,nrow = N_simulations, ncol = 20)
+new_dispatch_hour[,1:2] = dispatch_hour[,1:2]
+new_dispatch_hour[,3:8] = dispatch_hour[,5:10]
+new_dispatch_hour[,9:10] = dispatch_hour[,3:4]
+new_dispatch_hour[,11:20] = dispatch_hour[,11:20]
+
+# Therefore the participants are : 
+
+new_participants = c("WW1_DK1","WW2_DK1",
+                 "Peako_DK1", "Peako_DK1",
+                 "Nuke22_DK1", "FlexiGas_DK1", "FlexiGas_DK1", "FlexiGas_DK1",
+                 "EW1_DK2","EW2_DK2", "Nuke22_DK2",
+                 "RoskildeCHP_DK2", "RoskildeCHP_DK2",
+                 "Avedovre_DK2", "Avedovre_DK2",
+                 "BlueWater_DK2", "BlueWater_DK2",
+                 "Transmission_line",
+                 "Shedding1", "Shedding2")
+
+eq.price_hour = matrix(0,nrow = N_simulations, ncol = 20) 
+eq.price_hour[,1:8] = price_hour[,1] # DK1
+eq.price_hour[,9:20] = price_hour[,2] # DK2
+
+# particular case of support 
+eq.price_hour[,2] = eq.price_hour[,2] + 17 # prenium
+eq.price_hour[,10] = 25 # feed in tariff
+
+revenues_hour = matrix(0,nrow = N_simulations, ncol = 20)
+for (i in 1:N_simulations){
+  revenues_hour[i,] = eq.price_hour[i,]*new_dispatch_hour[i,]
+}
+
+# reset graphical parameters
+par(mar = c(5, 5,4, 2))
+plot(1:N_simulations,(revenues_hour[,1]+revenues_hour[,2])/1000, type = 'l', xlab = "Time [h]", ylab = "Revenues [k€]")
+lines(1:N_simulations,(revenues_hour[,9]+revenues_hour[,10])/1000, type = 'l', xlab = "Time [h]", ylab = "Revenues [k€]", col = "blue", lwd = 1.5)
+legend("topleft", legend= c("DK1","DK2"), col = c("black", "blue"), lty = 1, cex = 0.75, lwd = 2)
+title(main = "Hourly revenues from wind production")
+
+##  
+# Generators revenues when low wind penetration 
+par(mar=c(8, 4, 2, 2) + 0.1)
+plot(1:20, new_dispatch_hour[120,], type = "h", lwd = 5, xlab = "", xaxt ="n", ylab = "[MWh]" )
+axis(1, at=1:20, labels = new_participants[1:20], las = 2, cex.axis = 0.8)
+title(main="Generators dispatch when low wind penetration")
+
+par(mar=c(8, 4, 2, 2) + 0.1)
+plot(1:20, revenues_hour[120,1:20]/1000, type = "h", lwd = 5, ylab = "[k€]", xlab = "", xaxt ="n")
+axis(1, at=1:20, labels = new_participants[1:20], las = 2, cex.axis = 0.8)
+lines(18, revenues_hour[120,18]/1000, type = "h", lwd = 5, col = "red")
+title(main="Generators revenues when low wind penetration")
+mtext(paste0("Eq. price (€) in DK1 - DK2 resp. : ", price_hour[120, 1], " - ", price_hour[120,2]), 1, line=7, col = "blue")
+
+### Generators revenues when high wind penetration 
+## Notes : BlueWater_DK2 produces 258 MWh but makes no revenues
+## Notes : same for EW1_DK2 who produces 325 MWh but doesn't have any support therefore makes no revenues
+plot(1:20, new_dispatch_hour[650,], type = "h", lwd = 5, xlab = "", xaxt ="n", ylab = "[MWh]" )
+axis(1, at=1:20, labels = new_participants[1:20], las = 2, cex.axis = 0.8)
+title(main="Generators dispatch when high wind penetration")
+
+par(mar=c(8, 4, 2, 2) + 0.1)
+plot(1:20, revenues_hour[650,]/1000, type = "h", lwd = 5, ylab = "[k€]", xlab = "", xaxt ="n")
+lines(9,revenues_hour[650,9]/1000, type = "h", col = "red", lwd = 5)
+lines(16,revenues_hour[650,16]/1000, type = "h", col = "red", lwd = 5)
+axis(1, at=1:20, labels = new_participants[1:20], las = 2, cex.axis = 0.8)
+title(main="Generators revenues when high wind penetration")
+mtext(paste0("Eq. price (€) in DK1 - DK2 resp. : ", price_hour[650, 1], " - ", price_hour[650,2]), 1, line=7, col = "blue")
+
+# plot average daily revenue for each produceur 
+# compute overall revenue for each participant in each market
