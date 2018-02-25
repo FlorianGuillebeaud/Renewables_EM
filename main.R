@@ -7,15 +7,14 @@ setwd("~/Documents/DTU/B_Semester-2/31761_Renew_ElectricityMarkets/Assignments/A
 ## Install packages 
 # install.packages("ggplot2")
 # install.packages("lpSolve")
+# install.packages("lpSolveAPI")
 # install.packages("linprog")
-# install.packages("circlize")
 
 ## Read packages if already installed 
 library(ggplot2)
 library(lpSolve)
 library(linprog)
-library(tidyverse)
-
+library(lpSolveAPI)
 
 ## read data ## 
 Avedovre = read.csv("data/Avedovre.csv", header = TRUE, sep =";", skip = 1)
@@ -61,8 +60,8 @@ welfare_hour = vector()
 ## DK1 = WEST / DK2 = EAST
 for (i in 1:N_simulations){
   # Objective function
-  f.obj = c(0, -17, 0, -500, 70, 
-            64, 153, 82, 89, Nuke22$G6_price[i], Nuke22$G7_price[i], 43, 39, 36, 31, 5, 10, 0, 1000, 1000)
+  f.obj = c(0, -17, 0, -500, 
+            70, 64, 153, 82, 89, Nuke22$G6_price[i], Nuke22$G7_price[i], 43, 39, 36, 31, 5, 10, 0, 1000, 1000)
   
   # define load shedding 
   # first try
@@ -111,6 +110,7 @@ for (i in 1:N_simulations){
   welfare_hour[i] = abs(eq.welfare)
 }
 
+stop("stop heere")
 ########################################################
 ########################################################
 # Post-traitments 
@@ -239,12 +239,12 @@ for (i in 1:N_simulations){
 cat(paste0("100% wind penetration in DK2 : ", round(count/N_simulations*100), " % of the time"))
 
 par(mar = c(4.5, 4.5,2, 2))
-png('images/Wind_penetrationDK2.png', width = 580, height = 400, units = "px", pointsize = 12)
+# png('images/Wind_penetrationDK2.png', width = 580, height = 400, units = "px", pointsize = 12)
 plot(1:N_simulations, (dispatch_hour[,3]+dispatch_hour[,4])/demand_hour[,2]*100, type = 'l', ylim = c(-5,105),
      xlab = "Time [h]", ylab = "[%]", col ="black", lwd = 2)
 legend("bottomright", legend = paste0("100% wind penetration in DK2 : ", round(count/N_simulations*100), " % of the time"), cex = 0.75)
 title(main = "Wind penetration in DK2")
-dev.off()
+# dev.off()
 
 # let's look at the price evolution 
 png('images/Price_DK2.png', width = 580, height = 400, units = "px", pointsize = 12)
@@ -357,7 +357,7 @@ source("functions/m_order.R")
 source("functions/simple_merit_order_plot.R")
 
 ## high wind penetration
-i = 650 
+i = 4
 b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
       400, 330, 345, 390, 510, Nuke22$G6_quantity[i], Nuke22$G7_quantity[i], 320, 360, 400, 350, 730, 630, transmission_cap, lsDK1, lsDK2)
 
@@ -369,9 +369,11 @@ data = data.frame(quantity = quantity, price = price)
 data = data[order(data$price),]
 new_quantity = m_order(data$quantity)
 data[,1] = new_quantity
-png('images/MC_DK1_hwp.png', width = 580, height = 400, units = "px", pointsize = 12)
-simple_merit_order_plot(data, "Market clearing DK1 - high wind penetration", TRUE, demand_dk1)
-dev.off()
+simple_merit_order_plot(data, paste0("Market clearing DK1 : i =  ", i ), TRUE, demand_dk1)
+
+# png('images/MC_DK1_hwp.png', width = 580, height = 400, units = "px", pointsize = 12)
+# simple_merit_order_plot(data, "Market clearing DK1 - high wind penetration", TRUE, demand_dk1)
+# dev.off()
 
 # DK2
 quantity = c(b[3:4],b[11:17])
@@ -381,13 +383,15 @@ data = data.frame(quantity = quantity, price = price)
 data = data[order(data$price),]
 new_quantity = m_order(data$quantity)
 data[,1] = new_quantity
-png('images/MC_DK2_hwp.png', width = 580, height = 400, units = "px", pointsize = 12)
-simple_merit_order_plot(data, "Market clearing DK2 - high wind penetration", TRUE, demand_dk2)
-dev.off()
+simple_merit_order_plot(data, paste0("Market clearing DK2 : i =  ", i ), TRUE, demand_dk2)
+
+# png('images/MC_DK2_hwp.png', width = 580, height = 400, units = "px", pointsize = 12)
+# simple_merit_order_plot(data, "Market clearing DK2 - high wind penetration", TRUE, demand_dk2)
+# dev.off()
 
 ## low wind penetration
 
-i = 120 # high penetration
+i = 120 # low penetration
 b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
       400, 330, 345, 390, 510, Nuke22$G6_quantity[i], Nuke22$G7_quantity[i], 320, 360, 400, 350, 730, 630, transmission_cap, lsDK1, lsDK2)
 
@@ -399,9 +403,9 @@ data = data.frame(quantity = quantity, price = price)
 data = data[order(data$price),]
 new_quantity = m_order(data$quantity)
 data[,1] = new_quantity
-png('images/MC_DK1_lwp.png', width = 580, height = 400, units = "px", pointsize = 12)
+# png('images/MC_DK1_lwp.png', width = 580, height = 400, units = "px", pointsize = 12)
 simple_merit_order_plot(data, "Market clearing DK1 - low wind penetration", TRUE, demand_dk1)
-dev.off()
+# dev.off()
 
 # DK2
 quantity = c(b[3:4],b[11:17])
@@ -411,9 +415,9 @@ data = data.frame(quantity = quantity, price = price)
 data = data[order(data$price),]
 new_quantity = m_order(data$quantity)
 data[,1] = new_quantity
-png('images/MC_DK2_hwp.png', width = 580, height = 400, units = "px", pointsize = 12)
+# png('images/MC_DK2_lwp.png', width = 580, height = 400, units = "px", pointsize = 12)
 simple_merit_order_plot(data, "Market clearing DK2 - low wind penetration", TRUE, demand_dk2)
-dev.off()
+# dev.off()
 
 ########################################################
 ########################################################
