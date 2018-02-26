@@ -60,7 +60,7 @@ welfare_hour = vector()
 ## DK1 = WEST / DK2 = EAST
 for (i in 1:N_simulations){
   # Objective function
-  f.obj = c(0, -17, 0, -500, 
+  f.obj = c(0, -17, 0, -25, 
             70, 64, 153, 82, 89, Nuke22$G6_price[i], Nuke22$G7_price[i], 43, 39, 36, 31, 5, 10, 0, 1000, 1000)
   
   # define load shedding 
@@ -257,11 +257,6 @@ dev.off()
 
 ########################################################
 ########################################################
-## Global
-# here we take a look at the welfare evolution
-plot(1:N_simulations, welfare_hour, type = "l", xlab = "Time [h]", ylab = "Welfare [Eur/MW]")
-title(main= "Welfare evolution during January for the global market")
-
 # here we look at the usage of the transmission
 count = 0
 for (i in 1:N_simulations) if (dispatch_hour[i,18]==600) count = count + 1
@@ -357,7 +352,7 @@ source("functions/m_order.R")
 source("functions/simple_merit_order_plot.R")
 
 ## high wind penetration
-i = 4
+i = 1
 b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
       400, 330, 345, 390, 510, Nuke22$G6_quantity[i], Nuke22$G7_quantity[i], 320, 360, 400, 350, 730, 630, transmission_cap, lsDK1, lsDK2)
 
