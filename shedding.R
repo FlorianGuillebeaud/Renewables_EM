@@ -144,17 +144,32 @@ title(main = "Transmission", sub = paste0("Congestion occurs : ", round(count/N_
 dev.off()
 
 DK12_transmission = DK21_transmission = matrix(0, nrow = 24, ncol = 31)
-for (i in 1:24){
+k = 1
+for (i in 1:N_simulations){
   j = i%%24 
   cat(paste0("j = ",j), "\n")
-  while (j != 0){
-    if (dispatch_hour[i,18] >= 0){
-      DK12_transmission[j, ] = dispatch_hour[i,18] 
-    } else{
-      DK21_transmission[j,] = -dispatch_hour[i,18]
-    }}
+  cat(paste0("k = ",k), "\n")
   
+  if (j != 0){
+    k = k
+    if (dispatch_hour[i,18] >= 0){
+      DK12_transmission[j,k] = dispatch_hour[i,18]/transmission_cap*100 
+    } else{
+      DK21_transmission[j,k] = -dispatch_hour[i,18]/transmission_cap*100
+    }
+  }else{
+  k=k+1
+  if (dispatch_hour[i,18] >= 0){
+    DK12_transmission[j,k] = dispatch_hour[i,18]/transmission_cap*100 
+  } else{
+    DK21_transmission[j,k] = -dispatch_hour[i,18]/transmission_cap*100
+  }
+  }
 }
+
+plot(1:24, DK12_transmission[,10], type = 'h', lwd = 10, ylim = c(0,100))
+lines(1:24, DK21_transmission[,10], type = 'h', lwd = 9, col = "darkgrey")
+
 ########################################################
 ########################################################
 # We order Generators for DK1 and for DK2 
