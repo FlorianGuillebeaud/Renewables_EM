@@ -42,60 +42,87 @@ EW2_pp = 2/3 # EastWind2 quantity based on predicted prod
 ## 
 N_simulations = 31*24 # January hourly
 transmission_cap = 600 # MWh
+shedding = 0 # initialisation
 
-## Save the results 
-dispatch_hour = matrix(0,nrow = N_simulations, ncol = 20)
-price_hour_new = matrix(0,nrow = N_simulations, ncol = 2)
-demand_hour = matrix(0,nrow = N_simulations, ncol = 2)
+while( shedding == 0)
+{
+  transmission_cap = transmission_cap - 25
 
-## DK1 = WEST / DK2 = EAST
-for (i in 1:N_simulations){
-  # i = 454
-  lps.model <- make.lp(22,20)
-  set.column(lps.model, 1, c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
-  set.column(lps.model, 2, c(0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
-  set.column(lps.model, 3, c(0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1))
-  set.column(lps.model, 4, c(0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1))
-  set.column(lps.model, 5, c(0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
-  set.column(lps.model, 6, c(0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
-  set.column(lps.model, 7, c(0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
-  set.column(lps.model, 8, c(0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
-  set.column(lps.model, 9, c(0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0))
-  set.column(lps.model, 10, c(0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0))
-  set.column(lps.model, 11, c(0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1))
-  set.column(lps.model, 12, c(0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1))
-  set.column(lps.model, 13, c(0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1))
-  set.column(lps.model, 14, c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1))
-  set.column(lps.model, 15, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1))
-  set.column(lps.model, 16, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1))
-  set.column(lps.model, 17, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1))
-  set.column(lps.model, 18, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,-1))
-  set.column(lps.model, 19, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0))
-  set.column(lps.model, 20, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1))
+  ## Save the results 
+  dispatch_hour = matrix(0,nrow = N_simulations, ncol = 20)
+  price_hour_new = matrix(0,nrow = N_simulations, ncol = 2)
+  demand_hour = matrix(0,nrow = N_simulations, ncol = 2)
   
-  set.objfn(lps.model, c(0, -17, 0, -25, 70, 64, 153, 82, 89, Nuke22$G6_price[i], Nuke22$G7_price[i], 43, 39, 36, 31, 5, 10, 0, 10000, 10000))
-  set.constr.type(lps.model, c(rep("<=", 20),"=", "=") )
-  # 
-  b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
-        400, 330, 345, 390, 510,Nuke22$G6_quantity[i], Nuke22$G7_quantity[i], 320, 360, 400, 350, 730, 630, transmission_cap, lsDK1= 10000, lsDK2=10000)
-  beq_DK1 = Consumption$DK1[i] + GermanyExport$Germany_quantity[i] - NorwayImport$Norway_Quantity[i]
-  beq_DK2 = Consumption$DK2[i] + SwedenExport$Sweden_quantity[i]
-  beq = c(beq_DK1, beq_DK2)
-  # 
-  # 
-  set.rhs(lps.model, c(b,beq))
-  set.bounds(lps.model, lower = -600, columns = 18)
-  
-  solve(lps.model)
-  dispatch_hour[i,] <- get.variables(lps.model)
-  demand_hour[i,1] = beq_DK1
-  demand_hour[i,2] = beq_DK2
-  price_hour_new[i,1] <- get.dual.solution(lps.model)[22]
-  price_hour_new[i,2] <- get.dual.solution(lps.model)[23]
-  
+  ## DK1 = WEST / DK2 = EAST
+  for (i in 1:N_simulations){
+    # i = 454
+    lps.model <- make.lp(22,20)
+    set.column(lps.model, 1, c(1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
+    set.column(lps.model, 2, c(0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
+    set.column(lps.model, 3, c(0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1))
+    set.column(lps.model, 4, c(0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1))
+    set.column(lps.model, 5, c(0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
+    set.column(lps.model, 6, c(0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
+    set.column(lps.model, 7, c(0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
+    set.column(lps.model, 8, c(0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1,0))
+    set.column(lps.model, 9, c(0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0))
+    set.column(lps.model, 10, c(0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,0))
+    set.column(lps.model, 11, c(0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1))
+    set.column(lps.model, 12, c(0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1))
+    set.column(lps.model, 13, c(0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1))
+    set.column(lps.model, 14, c(0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1))
+    set.column(lps.model, 15, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1))
+    set.column(lps.model, 16, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1))
+    set.column(lps.model, 17, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1))
+    set.column(lps.model, 18, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,-1))
+    set.column(lps.model, 19, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1,0))
+    set.column(lps.model, 20, c(0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,1))
+    
+    set.objfn(lps.model, c(0, -17, 0, -25, 70, 64, 153, 82, 89, Nuke22$G6_price[i], Nuke22$G7_price[i], 43, 39, 36, 31, 5, 10, 0, 10000, 10000))
+    set.constr.type(lps.model, c(rep("<=", 20),"=", "=") )
+    # 
+    b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
+          400, 330, 345, 390, 510,Nuke22$G6_quantity[i], Nuke22$G7_quantity[i], 320, 360, 400, 350, 730, 630, transmission_cap, lsDK1= 10000, lsDK2=10000)
+    beq_DK1 = Consumption$DK1[i] + GermanyExport$Germany_quantity[i] - NorwayImport$Norway_Quantity[i]
+    beq_DK2 = Consumption$DK2[i] + SwedenExport$Sweden_quantity[i]
+    beq = c(beq_DK1, beq_DK2)
+    # 
+    # 
+    set.rhs(lps.model, c(b,beq))
+    set.bounds(lps.model, lower = -transmission_cap, columns = 18)
+    
+    solve(lps.model)
+    dispatch_hour[i,] <- get.variables(lps.model)
+    demand_hour[i,1] = beq_DK1
+    demand_hour[i,2] = beq_DK2
+    price_hour_new[i,1] <- get.dual.solution(lps.model)[22]
+    price_hour_new[i,2] <- get.dual.solution(lps.model)[23]
+    
+  }
+ 
+  shedding = colSums(dispatch_hour[,19:20])
+ # Influence of the transmission
+ # DK1
+ png(paste0("images/iteration/usage_transmission_lwp_",transmission_cap,".png"), width = 580, height = 400, units = "px", pointsize = 12)
+ par(mar = c(4.5, 4.5,2, 2))
+ plot(420:460, demand_hour[420:460,1], type = 'h', ylim = c(-transmission_cap-1700,3500), xlab = "Time [h]", ylab = "[MW]", lwd = 10, cex.lab = 1.5, cex.axis = 1.2)
+ lines(420:460,dispatch_hour[420:460,1]+dispatch_hour[420:460,2]+dispatch_hour[420:460,5]+dispatch_hour[420:460,6]+dispatch_hour[420:460,7]+dispatch_hour[420:460,8]+dispatch_hour[420:460,9]+dispatch_hour[420:460,10], col = "grey", lwd = 4, type = "h")
+ lines(420:460, Wind$DK1[420:460],col = "blue", lwd = 4, type = "h" )
+ lines(420:460,dispatch_hour[420:460,1]+dispatch_hour[420:460,2], col = "darkorange", lwd = 4, type = "h")
+ lines(420:460, dispatch_hour[420:460,18], type = "h", xlab = "Time [h]", ylab = "[MWh]", col = "green", lwd = 4)
+ abline(h=-transmission_cap, col ="red", lty = 2, lwd = 2)
+ abline(h=transmission_cap, col ="red", lty = 2, lwd = 2)
+ legend("bottomleft", legend = c("Electricity demand in DK1", "Electricity prod. in DK1",
+                                 "Electricity prod. from wind", "Transmission to DK2 (negative = export to DK2)",
+                                 "Wind availabilities", "Transmission cap"),
+        col = c("black", "grey", "orange","green", "blue","red"), lty = c(1,1,1,1,1,2), cex = 0.75, lwd = 4 )
+ # title(main = "Study case when high wind penetration")
+ dev.off()
 }
 
 
+
+stop("plots and post-traitment start here")
 ########################################################
 ########################################################
 # Post-traitments 
@@ -161,14 +188,14 @@ abline( h = max(price_hour_new[,1]), col = "red", lwd = 2)
 abline( h = mean(price_hour_new[,1]), col = "red", lty = 3, lwd = 3)
 abline(h=0)
 legend("topleft", legend= c("DK1", paste0("Max price : ", max(price_hour_new[,1]), " €/MWh"), paste0("Mean price over the month: ", round(mean(price_hour_new[,1])), " €/MWh")),
-       col = c("black", "red","red"), lty = c(1,1,3), lwd = 2, cex =1)
+       col = c("black", "red","red"), lty = c(1,1,3), lwd = 2, cex =1.5)
 par(mar=c(2, 4.5, 0, 0.5))
 plot(1:N_simulations, price_hour_new[,2], xlab = "Time [h]", ylab = "",ylim = c(-20, max(price_hour_new[,2])+30), type = "l", col = "black", lwd = 1.5)
 abline( h = max(price_hour_new[,2]), col = "red", lwd = 2)
 abline( h = mean(price_hour_new[,2]), col = "red", lty = 3, lwd = 3)
 abline(h=0)
 legend("topleft", legend= c("DK2", paste0("Max price : ", max(price_hour_new[,2]), " €/MWh"), paste0("Mean price over the month: ", round(mean(price_hour_new[,2])), " €/MWh")),
-       col = c("black", "red","red"), lty = c(1,1,3), lwd = 2, cex = 1)
+       col = c("black", "red","red"), lty = c(1,1,3), lwd = 2, cex = 1.5)
 dev.off()
 
 ########################################################
@@ -312,22 +339,22 @@ legend("topright", legend = "DK2")
 mtext(paste0("Eq. price (€) in DK1 - DK2 resp. : ", price_hour_new[650,1], " / ", price_hour_new[650,2]), 1, line=7, col = "blue")
 dev.off()
 
-# low wind penetration i = 120
+# low wind penetration i = 431
 # Generators revenues when low wind penetration 
 png('images/generator_dispatch_lwp.png', width = 580, height = 400, units = "px", pointsize = 12)
 par(mar=c(8, 4, 2, 2) + 0.1)
-plot(1:17, new_dispatch_hour[120,], type = "h",lend="square", lwd = 10, xlab = "", xaxt ="n", ylab = "[MWh]", ylim = c(0,1000) )
+plot(1:17, new_dispatch_hour[431,], type = "h",lend="square", lwd = 10, xlab = "", xaxt ="n", ylab = "[MWh]", ylim = c(0,1000) )
 axis(1, at=1:20, labels = new_participants[1:20], las = 2, cex.axis = 1.2, lwd = 2)
 abline(v = 8.5, type = 'l' )
 legend("topleft", legend = "DK1 ")
 legend("topright", legend = "DK2")
 title(main="Generators dispatch when low wind penetration")
 dev.off()
-
+lwp_DK1 = round(sum(dispatch_hour[431,1:2])/demand_hour[431,1], digits = 3)*100
 
 png('images/revenues_dispatch_lwp.png', width = 580, height = 400, units = "px", pointsize = 12)
 par(mar=c(8, 4, 2, 2) + 0.1)
-plot(1:17, revenues_hour[120,1:17]/1000, type = "h", lend="square", lwd = 10, ylab = "[k€]", xlab = "", xaxt ="n", ylim = c(0,45))
+plot(1:17, revenues_hour[431,1:17]/1000, type = "h", lend="square", lwd = 10, ylab = "[k€]", xlab = "", xaxt ="n", ylim = c(0,45))
 axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 1.2, cex.lab=2)
 abline(v = 8.5, type = 'l' )
 legend("topleft", legend = "DK1 ")
@@ -335,7 +362,7 @@ legend("topright", legend = "DK2")
 title(main="Generators revenues when low wind penetration")
 mtext(paste0("Eq. price (€) in DK1 - DK2 resp. : ", price_hour_new[120, 1], " / ", price_hour_new[120,2]), 1, line=7, col = "blue")
 dev.off()
-
+lwp_DK2 = round(sum(dispatch_hour[431,3:4])/demand_hour[431,2], digits = 3)*100
 
 ########################################################
 ########################################################
@@ -403,7 +430,7 @@ dev.off()
 ########################################################
 # General wind penetration 
 par(mar = c(4.5, 4.5,2, 2))
-wp = ((dispatch_hour[,1]+dispatch_hour[,2]+dispatch_hour[,3]+dispatch_hour[,4])/(demand_hour[,1]+demand_hour[,2]))*100
+wp = rowSums(dispatch_hour[,1:4])/rowSums(demand_hour[,1:2])*100
 mean_wp = mean(wp)
 
 png('images/wp_DK.png', width = 580, height = 400, units = "px", pointsize = 12)
@@ -485,7 +512,7 @@ dev.off()
 
 # Influence of the transmission
 # DK1
-png('images/usage_transmission.png', width = 580, height = 400, units = "px", pointsize = 12)
+png('images/usage_transmission_hwp.png', width = 580, height = 400, units = "px", pointsize = 12)
 par(mar = c(4.5, 4.5,2, 2))
 plot(620:660, demand_hour[620:660,1], type = 'h', ylim = c(-2500,3500), xlab = "Time [h]", ylab = "[MW]", lwd = 10, cex.lab = 1.5, cex.axis = 1.2)
 lines(620:660,dispatch_hour[620:660,1]+dispatch_hour[620:660,2]+dispatch_hour[620:660,5]+dispatch_hour[620:660,6]+dispatch_hour[620:660,7]+dispatch_hour[620:660,8]+dispatch_hour[620:660,9]+dispatch_hour[620:660,10], col = "grey", lwd = 4, type = "h")
@@ -498,17 +525,20 @@ legend("bottomleft", legend = c("Electricity demand in DK1", "Electricity prod. 
                                 "Electricity prod. from wind", "Transmission to DK2 (negative = export to DK2)",
                                 "Wind availabilities", "Transmission cap"), 
        col = c("black", "grey", "orange","green", "blue","red"), lty = c(1,1,1,1,1,2), cex = 0.75, lwd = 4 )
-title(main = "Study case when high wind penetration")
+# title(main = "Study case when high wind penetration")
 dev.off()
 
-plot(110:130, demand_hour[110:130,1], type = 'h', ylim = c(0,3500), xlab = "Time [h]", ylab = "[MW]", lwd = 10)
-lines(110:130,dispatch_hour[110:130,1]+dispatch_hour[110:130,2]+dispatch_hour[110:130,5]+dispatch_hour[110:130,6]+dispatch_hour[110:130,7]+dispatch_hour[110:130,8]+dispatch_hour[110:130,9]+dispatch_hour[110:130,10], col = "grey", lwd = 4, type = "h")
-lines(110:130,dispatch_hour[110:130,1]+dispatch_hour[110:130,2], col = "darkorange", lwd = 4, type = "h")
+png('images/usage_transmission_lwp.png', width = 580, height = 400, units = "px", pointsize = 12)
+plot(420:460, demand_hour[420:460,1], type = 'h', ylim = c(0,3500), xlab = "Time [h]", ylab = "[MW]", lwd = 10)
+lines(420:460,dispatch_hour[420:460,1]+dispatch_hour[420:460,2]+dispatch_hour[420:460,5]+dispatch_hour[420:460,6]+dispatch_hour[420:460,7]+dispatch_hour[420:460,8]+dispatch_hour[420:460,9]+dispatch_hour[420:460,10], col = "grey", lwd = 4, type = "h")
+lines(420:460,dispatch_hour[420:460,1]+dispatch_hour[420:460,2], col = "darkorange", lwd = 4, type = "h")
+points(420:460, dispatch_hour[420:460,18], xlab = "Time [h]", ylab = "[MWh]", col = "green", lwd = 4, pch = 3)
 abline(h=600, col ="red", lty = 1, lwd = 2)
-points(110:130, dispatch_hour[110:130,18], xlab = "Time [h]", ylab = "[MWh]", col = "green", lwd = 4, pch = 3)
-legend("topright", legend = c("Electricity demand in DK1", "Electricity prod. in DK1", "Electricity prod. from wind",
+legend("topright", legend = c("Electricity demand in DK1", "Electricity prod. in DK1", "Electricity prod. from wind (= wind availability)",
                               "Transmission to DK2 (positive = import from DK2)","Transmission cap"), 
-       col = c("black", "grey", "orange","green", "red"), lty = c(1,1,1), pch = c(NaN,NaN,NaN,3), cex = 0.75, lwd = 4 )
+       col = c("black", "grey", "orange","green", "red"), lty = c(1,1,1,1), pch = c(NaN,NaN,NaN,3), cex = 0.75, lwd = 4 )
+# title(main = "Study case when low wind penetration")
+dev.off()
 
 ########################################################
 ########################################################
@@ -551,7 +581,7 @@ dev.off()
 
 ## low wind penetration
 
-i = 120 # low penetration
+i = 431 # low penetration
 b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
       400, 330, 345, 390, 510, Nuke22$G6_quantity[i], Nuke22$G7_quantity[i], 320, 360, 400, 350, 730, 630, transmission_cap, 10000, 10000)
 f.obj = c(0, -17, 0, -25, 70, 64, 153, 82, 89, Nuke22$G6_price[i], Nuke22$G7_price[i], 43, 39, 36, 31, 5, 10, 0, 10000, 10000)
