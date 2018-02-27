@@ -231,27 +231,41 @@ new_dispatch_hour[,11:17] = dispatch_hour[,11:17]
 
 # Therefore the participants are : 
 
-new_participants = c("WW1_DK1","WW2_DK1",
-                     "Peako_DK1", "Peako_DK1",
-                     "Nuke22_DK1", "FlexiGas_DK1", "FlexiGas_DK1", "FlexiGas_DK1",
-                     "EW1_DK2","EW2_DK2", "Nuke22_DK2",
-                     "RoskildeCHP_DK2", "RoskildeCHP_DK2",
-                     "Avedovre_DK2", "Avedovre_DK2",
-                     "BlueWater_DK2", "BlueWater_DK2") # "Transmission_line", "Shedding1", "Shedding2")
+new_participants = c("WW1","WW2",
+                     "FlexiGas", "FlexiGas", "FlexiGas",
+                     "Peako", "Peako","Nuke22",
+                     "EW1","EW2", "Nuke22",
+                     "RoskildeCHP", "RoskildeCHP",
+                     "Avedovre", "Avedovre",
+                     "BlueWater", "BlueWater") # "Transmission_line", "Shedding1", "Shedding2")
 
 
 # Conventional generators scheduled 
+png('images/generators_schedule.png', width = 580, height = 400, units = "px", pointsize = 12)
 par(mar=c(8, 4, 2, 2) + 0.1)
 generator_schedule = (colSums(new_dispatch_hour[1:N_simulations,]>0)[1:17])/N_simulations*100
-plot(1:17, generator_schedule, type = "h", lwd = 7.5, xlab = "", xaxt = "n", ylab = "[%]")
-lines(3:4, generator_schedule[3:4], type = "h", col ="green", lwd = 7.5)
-lines(5, generator_schedule[5], type = "h", col ="red", lwd = 7.5)
-lines(6:8, generator_schedule[6:8], type = "h", col ="green", lwd = 7.5)
-lines(11, generator_schedule[11], type = "h", col ="green", lwd = 7.5)
-lines(12:13, generator_schedule[12:13], type = "h", col ="red", lwd = 7.5)
-lines(14:15, generator_schedule[14:15], type = "h", col ="green", lwd = 7.5)
-axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 0.8)
+plot(1:17, generator_schedule, type = "h", lend="square", lwd = 10, xlab = "", xaxt = "n", ylab = "[%]", yaxt ="n", ylim = c(0,140))
+ylabel <- seq(0, 100, by = 25)
+axis(2, at = ylabel)
+lines(1:2, generator_schedule[1:2], type = "h", lend="square",col ="blue", lwd =10)
+lines(3:4, generator_schedule[3:4], type = "h", lend="square",col ="black", lwd =10)
+lines(5, generator_schedule[5], type = "h",lend="square", col ="red", lwd =10)
+lines(6:8, generator_schedule[6:8], type = "h", lend="square",col ="black", lwd =10)
+lines(9:10, generator_schedule[9:10], type = "h", lend="square",col ="blue", lwd =10)
+lines(11, generator_schedule[11], type = "h", lend="square",col ="black", lwd =10)
+lines(12, generator_schedule[12], type = "h", lend="square",col ="red", lwd =10)
+lines(13:15, generator_schedule[13:15], type = "h", lend="square",col ="black", lwd =10)
+lines(16:17, generator_schedule[16:17], type = "h", lend="square",col ="blue", lwd =10)
+axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 1.2, lwd = 2)
+abline(v = 8.5, type = 'l' )
+legend("topleft", legend = "DK1")
+legend("topright", legend = "DK2" )
+legend("top", legend = c("Renewable generators", "Conventional generators","Conventional generators never scheduled"),
+       col = c("blue", "black", "red"), lty = 1, lwd = 3, cex = 0.75)
 title(main="Generation scheduled over January")
+dev.off()
+
+cat(paste0("In average, conventional generators are scheduled : "))
 
 #
 eq.price_hour = matrix(0,nrow = N_simulations, ncol = 17) 
@@ -278,17 +292,23 @@ dev.off()
 # high wind penetration i = 650
 png('images/generator_dispatch_hwp.png', width = 580, height = 400, units = "px", pointsize = 12)
 par(mar=c(8, 4, 2, 2) + 0.1)
-plot(1:17, new_dispatch_hour[650,], type = "h", lwd = 5, xlab = "", xaxt ="n", ylab = "[MWh]" )
-axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 0.8)
+plot(1:17, new_dispatch_hour[650,], type = "h", lend="square", lwd = 10, xlab = "", xaxt ="n", ylab = "[MWh]" ,ylim = c(0,2800))
+axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 1.2, lwd=2)
+abline(v = 8.5, type = 'l' )
+legend("topleft", legend = "DK1 ")
+legend("topright", legend = "DK2")
 title(main="Generators dispatch when high wind penetration")
 dev.off()
 
 png('images/revenues_dispatch_hwp.png', width = 580, height = 400, units = "px", pointsize = 12)
 par(mar=c(8, 4, 2, 2) + 0.1)
-plot(1:17, revenues_hour[650,]/1000, type = "h", lwd = 5, ylab = "[k€]", xlab = "", xaxt ="n")
-lines(2,revenues_hour[650,2]/1000, type = "h", col = "red", lwd = 5)
-axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 0.8)
+plot(1:17, revenues_hour[650,]/1000, type = "h",lend="square", lwd = 10, ylab = "[k€]", xlab = "", xaxt ="n")
+lines(2,revenues_hour[650,2]/1000, type = "h", col = "red", lwd = 10, lend="square")
+axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 1.2, lwd= 2)
 title(main="Generators revenues when high wind penetration")
+abline(v = 8.5, type = 'l' )
+legend("topleft", legend = "DK1 ")
+legend("topright", legend = "DK2")
 mtext(paste0("Eq. price (€) in DK1 - DK2 resp. : ", price_hour_new[650,1], " / ", price_hour_new[650,2]), 1, line=7, col = "blue")
 dev.off()
 
@@ -296,16 +316,22 @@ dev.off()
 # Generators revenues when low wind penetration 
 png('images/generator_dispatch_lwp.png', width = 580, height = 400, units = "px", pointsize = 12)
 par(mar=c(8, 4, 2, 2) + 0.1)
-plot(1:17, new_dispatch_hour[120,], type = "h", lwd = 5, xlab = "", xaxt ="n", ylab = "[MWh]" )
-axis(1, at=1:20, labels = new_participants[1:20], las = 2, cex.axis = 0.8)
+plot(1:17, new_dispatch_hour[120,], type = "h",lend="square", lwd = 10, xlab = "", xaxt ="n", ylab = "[MWh]", ylim = c(0,1000) )
+axis(1, at=1:20, labels = new_participants[1:20], las = 2, cex.axis = 1.2, lwd = 2)
+abline(v = 8.5, type = 'l' )
+legend("topleft", legend = "DK1 ")
+legend("topright", legend = "DK2")
 title(main="Generators dispatch when low wind penetration")
 dev.off()
 
 
 png('images/revenues_dispatch_lwp.png', width = 580, height = 400, units = "px", pointsize = 12)
 par(mar=c(8, 4, 2, 2) + 0.1)
-plot(1:17, revenues_hour[120,1:17]/1000, type = "h", lwd = 5, ylab = "[k€]", xlab = "", xaxt ="n")
-axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 0.8)
+plot(1:17, revenues_hour[120,1:17]/1000, type = "h", lend="square", lwd = 10, ylab = "[k€]", xlab = "", xaxt ="n", ylim = c(0,45))
+axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 1.2, cex.lab=2)
+abline(v = 8.5, type = 'l' )
+legend("topleft", legend = "DK1 ")
+legend("topright", legend = "DK2")
 title(main="Generators revenues when low wind penetration")
 mtext(paste0("Eq. price (€) in DK1 - DK2 resp. : ", price_hour_new[120, 1], " / ", price_hour_new[120,2]), 1, line=7, col = "blue")
 dev.off()
@@ -320,8 +346,12 @@ for (i in 1:17){
 }
 
 png('images/overall_revenues.png', width = 580, height = 400, units = "px", pointsize = 12)
-plot(1:17, overall_revenues[1,1:17]/1000, type = "h", lwd = 5, ylab = "[k€]", xlab = "", xaxt ="n")
-axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 0.8)
+par(mar=c(8, 4, 2, 2) + 0.1)
+plot(1:17, overall_revenues[1,1:17]/1000, type = "h", lend="square", lwd = 10, ylab = "[k€]", xlab = "", xaxt ="n", ylim = c(0,35000))
+abline(v = 8.5, type = 'l' )
+legend("topleft", legend = "DK1 ")
+legend("topright", legend = "DK2")
+axis(1, at=1:17, labels = new_participants[1:17], las = 2, cex.axis = 1.2, lwd = 2)
 title(main = "[January] Overall revenues for each market participant")
 dev.off()
 
@@ -454,18 +484,99 @@ title(main = "Wind penetration in DK2")
 dev.off()
 
 # Influence of the transmission
+# DK1
 png('images/usage_transmission.png', width = 580, height = 400, units = "px", pointsize = 12)
-plot(190:220, demand_hour[190:220,1], type = 'h', ylim = c(-2000,3500), xlab = "Time [h]", ylab = "[MW]", lwd = 10)
-lines(190:220,dispatch_hour[190:220,1]+dispatch_hour[190:220,2]+dispatch_hour[190:220,5]+dispatch_hour[190:220,6]+dispatch_hour[190:220,7]+dispatch_hour[190:220,8]+dispatch_hour[190:220,9]+dispatch_hour[190:220,10], col = "grey", lwd = 4, type = "h")
-lines(190:220,dispatch_hour[190:220,1]+dispatch_hour[190:220,2], col = "darkorange", lwd = 4, type = "h")
-lines(190:220, dispatch_hour[190:220,18], type = "h", xlab = "Time [h]", ylab = "[MWh]", col = "green", lwd = 4)
-legend("bottomleft", legend = c("Electricity demand in DK1", "Electricity prod. in DK1", "Electricity prod. from wind", "Transmission to DK2 (negative = export to DK2)"), col = c("black", "grey", "orange","green"), lty = c(1,1,1,1), cex = 0.75, lwd = 4 )
+par(mar = c(4.5, 4.5,2, 2))
+plot(620:660, demand_hour[620:660,1], type = 'h', ylim = c(-2500,3500), xlab = "Time [h]", ylab = "[MW]", lwd = 10, cex.lab = 1.5, cex.axis = 1.2)
+lines(620:660,dispatch_hour[620:660,1]+dispatch_hour[620:660,2]+dispatch_hour[620:660,5]+dispatch_hour[620:660,6]+dispatch_hour[620:660,7]+dispatch_hour[620:660,8]+dispatch_hour[620:660,9]+dispatch_hour[620:660,10], col = "grey", lwd = 4, type = "h")
+lines(620:660, Wind$DK1[620:660],col = "blue", lwd = 4, type = "h" )
+lines(620:660,dispatch_hour[620:660,1]+dispatch_hour[620:660,2], col = "darkorange", lwd = 4, type = "h")
+lines(620:660, dispatch_hour[620:660,18], type = "h", xlab = "Time [h]", ylab = "[MWh]", col = "green", lwd = 4)
+abline(h=-600, col ="red", lty = 2, lwd = 2)
+abline(h=600, col ="red", lty = 2, lwd = 2)
+legend("bottomleft", legend = c("Electricity demand in DK1", "Electricity prod. in DK1",
+                                "Electricity prod. from wind", "Transmission to DK2 (negative = export to DK2)",
+                                "Wind availabilities", "Transmission cap"), 
+       col = c("black", "grey", "orange","green", "blue","red"), lty = c(1,1,1,1,1,2), cex = 0.75, lwd = 4 )
+title(main = "Study case when high wind penetration")
 dev.off()
 
-plot(150:160, demand_hour[150:160,1], type = 'h', ylim = c(0,3500), xlab = "Time [h]", ylab = "[MW]", lwd = 10)
-lines(150:160,dispatch_hour[150:160,1]+dispatch_hour[150:160,2]+dispatch_hour[150:160,5]+dispatch_hour[150:160,6]+dispatch_hour[150:160,7]+dispatch_hour[150:160,8]+dispatch_hour[150:160,9]+dispatch_hour[150:160,10], col = "grey", lwd = 4, type = "h")
-lines(150:160,dispatch_hour[150:160,1]+dispatch_hour[150:160,2], col = "darkorange", lwd = 4, type = "h")
-points(150:160, dispatch_hour[150:160,18], xlab = "Time [h]", ylab = "[MWh]", col = "green", lwd = 4, pch = 3)
-legend("topleft", legend = c("Electricity demand in DK1", "Electricity prod. in DK1", "Electricity prod. from wind", "Transmission to DK2 (positive = import from DK2)"), col = c("black", "grey", "orange","green"), lty = c(1,1,1), pch = c(NaN,NaN,NaN,3), cex = 0.75, lwd = 4 )
+plot(110:130, demand_hour[110:130,1], type = 'h', ylim = c(0,3500), xlab = "Time [h]", ylab = "[MW]", lwd = 10)
+lines(110:130,dispatch_hour[110:130,1]+dispatch_hour[110:130,2]+dispatch_hour[110:130,5]+dispatch_hour[110:130,6]+dispatch_hour[110:130,7]+dispatch_hour[110:130,8]+dispatch_hour[110:130,9]+dispatch_hour[110:130,10], col = "grey", lwd = 4, type = "h")
+lines(110:130,dispatch_hour[110:130,1]+dispatch_hour[110:130,2], col = "darkorange", lwd = 4, type = "h")
+abline(h=600, col ="red", lty = 1, lwd = 2)
+points(110:130, dispatch_hour[110:130,18], xlab = "Time [h]", ylab = "[MWh]", col = "green", lwd = 4, pch = 3)
+legend("topright", legend = c("Electricity demand in DK1", "Electricity prod. in DK1", "Electricity prod. from wind",
+                              "Transmission to DK2 (positive = import from DK2)","Transmission cap"), 
+       col = c("black", "grey", "orange","green", "red"), lty = c(1,1,1), pch = c(NaN,NaN,NaN,3), cex = 0.75, lwd = 4 )
 
+########################################################
+########################################################
+### merit order plot
+source("functions/m_order.R")
+source("functions/simple_merit_order_plot.R")
+
+i = 650
+b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
+      400, 330, 345, 390, 510, Nuke22$G6_quantity[i], Nuke22$G7_quantity[i], 320, 360, 400, 350, 730, 630, transmission_cap, 10000, 10000)
+f.obj = c(0, -17, 0, -25, 70, 64, 153, 82, 89, Nuke22$G6_price[i], Nuke22$G7_price[i], 43, 39, 36, 31, 5, 10, 0, 10000, 10000)
+
+# DK1
+quantity = c(b[1:2],b[5:10])
+price = c(f.obj[1:2],f.obj[5:10])
+demand_dk1 = Consumption$DK1[i] + GermanyExport$Germany_quantity[i] - NorwayImport$Norway_Quantity[i]
+data_dk1 = data.frame(quantity = quantity, price = price)
+data_dk1 = data_dk1[order(data_dk1$price),]
+new_quantity = m_order(data_dk1$quantity)
+data_dk1[,1] = new_quantity
+simple_merit_order_plot(data_dk1, paste0("Market clearing DK1 : hour =  ", i ), TRUE, demand_dk1)
+
+png('images/MC_DK1_hwp.png', width = 580, height = 400, units = "px", pointsize = 12)
+simple_merit_order_plot(data_dk1, "Market clearing DK1 - high wind penetration", TRUE, demand_dk1)
+dev.off()
+
+# DK2
+quantity = c(b[3:4],b[11:17])
+price = c(f.obj[3:4],f.obj[11:17])
+demand_dk2 = Consumption$DK2[i] + SwedenExport$Sweden_quantity[i]
+data_dk2 = data.frame(quantity = quantity, price = price)
+data_dk2 = data_dk2[order(data_dk2$price),]
+new_quantity = m_order(data_dk2$quantity)
+data_dk2[,1] = new_quantity
+simple_merit_order_plot(data_dk2, paste0("Market clearing DK2 : hour =  ", i ), TRUE, demand_dk2)
+
+png('images/MC_DK2_hwp.png', width = 580, height = 400, units = "px", pointsize = 12)
+simple_merit_order_plot(data_dk2, "Market clearing DK2 - high wind penetration", TRUE, demand_dk2)
+dev.off()
+
+## low wind penetration
+
+i = 120 # low penetration
+b = c(WW1_pp*Wind$DK1[i], WW2_pp*Wind$DK1[i],EW1_pp*Wind$DK2[i], EW2_pp*Wind$DK2[i],
+      400, 330, 345, 390, 510, Nuke22$G6_quantity[i], Nuke22$G7_quantity[i], 320, 360, 400, 350, 730, 630, transmission_cap, 10000, 10000)
+f.obj = c(0, -17, 0, -25, 70, 64, 153, 82, 89, Nuke22$G6_price[i], Nuke22$G7_price[i], 43, 39, 36, 31, 5, 10, 0, 10000, 10000)
+
+# DK1
+quantity = c(b[1:2],b[5:10])
+price = c(f.obj[1:2],f.obj[5:10])
+demand_dk1 = Consumption$DK1[i] + GermanyExport$Germany_quantity[i] - NorwayImport$Norway_Quantity[i]
+data_dk1 = data.frame(quantity = quantity, price = price)
+data_dk1 = data_dk1[order(data_dk1$price),]
+new_quantity = m_order(data_dk1$quantity)
+data_dk1[,1] = new_quantity
+png('images/MC_DK1_lwp.png', width = 580, height = 400, units = "px", pointsize = 12)
+simple_merit_order_plot(data_dk1, "Market clearing DK1 - low wind penetration", TRUE, demand_dk1)
+dev.off()
+
+# DK2
+quantity = c(b[3:4],b[11:17])
+price = c(f.obj[3:4],f.obj[11:17])
+demand_dk2 = Consumption$DK2[i] + SwedenExport$Sweden_quantity[i]
+data_dk2 = data.frame(quantity = quantity, price = price)
+data_dk2 = data_dk2[order(data_dk2$price),]
+new_quantity = m_order(data_dk2$quantity)
+data_dk2[,1] = new_quantity
+png('images/MC_DK2_lwp.png', width = 580, height = 400, units = "px", pointsize = 12)
+simple_merit_order_plot(data_dk2, "Market clearing DK2 - low wind penetration", TRUE, demand_dk2)
+dev.off()
 
